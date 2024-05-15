@@ -56,6 +56,16 @@ async function run() {
     });
 
 
+    app.get("/queries/:email", async (req, res) => {
+      const result = await queriesCollection
+        .find({ email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+
+
+
+
 
     app.post("/queries", async (req, res) => {
       const queries = req.body;
@@ -101,8 +111,7 @@ async function run() {
     });
 
     app.delete('/delete/:id', async(req, res)=>{
-      const query = req.params.id;
-      const result = await queriesCollection.deleteOne({_id: new ObjectId(query)})
+      const result = await queriesCollection.deleteOne({_id: new ObjectId(req.params.id)})
       console.log(result);
       res.send(result)
     })
