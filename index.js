@@ -248,6 +248,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/myrecommendations/:email", async (req, res) => {
+      const result = await recommendationsCollection.find({ recommenderEmail: req.params.email }).toArray();
+      res.send(result);
+    });
+
     // Add a new recommendation
     app.post("/recommendations", async (req, res) => {
       const recommendation = req.body;
