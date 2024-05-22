@@ -151,7 +151,7 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER_DB}:${process.env.PASS_DB}@cluster0.8srq6fs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+// Create a MongoClient
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -174,24 +174,12 @@ async function run() {
       res.send(result);
     });
 
-    // Get query by country name
-    app.get("/country/:countryName", async(req, res) => {
-      const result = await queriesCollection.find({ countryName: req.params.countryName }).toArray();
-      console.log(req.params.countryName);
-      res.send(result);
-    });
-
     // Get query by cost
     app.get("/find/:cost", async(req, res) => {
       const result = await queriesCollection.find({ cost: req.params.cost }).toArray();
       res.send(result);
     });
 
-    // Get queries by user email
-    app.get("/myspots/:email", async (req, res) => {
-      const result = await queriesCollection.find({ email: req.params.email }).toArray();
-      res.send(result);
-    });
 
     app.get("/queries/:email", async (req, res) => {
       const result = await queriesCollection.find({ email: req.params.email }).toArray();
@@ -203,7 +191,6 @@ async function run() {
       const queries = req.body;
       const result = await queriesCollection.insertOne(queries);
       res.send(result);
-      console.log(queries);
     });
 
     // Get query details by ID
@@ -212,28 +199,7 @@ async function run() {
       res.send(result);
     });
 
-    // Update a query by ID
-    app.patch("/update/:id", async (req, res) => {
-      console.log(req.params.id);
-      const body = req.body;
-      const query = { _id: new ObjectId(req.params.id) };
-      const data = {
-        $set: {
-          image: body.image,
-          touristsSpotName: body.touristsSpotName,
-          countryName: body.countryName,
-          location: body.location,
-          description: body.description,
-          cost: body.cost,
-          season: body.season,
-          time: body.time,
-          visitor: body.visitor,
-        },
-      };
-      const result = await queriesCollection.updateOne(query, data);
-      res.send(result);
-      console.log(result);
-    });
+    
 
     // Delete a query by ID
     app.delete('/delete/:id', async(req, res) => {
@@ -242,9 +208,9 @@ async function run() {
       res.send(result);
     });
 
-    // Get all recommendations for a specific query by query ID
+
     app.get("/recommendations/:id", async(req, res) => {
-      const result = await recommendationsCollection.find({ queryId: new ObjectId(req.params.id) }).toArray();
+      const result = await recommendationsCollection.find({ queryId: req.params.id }).toArray();
       res.send(result);
     });
 
@@ -277,12 +243,24 @@ app.delete("/recommendation/:id", async (req, res) => {
 });
 
 
-    // Add a new recommendation
+
+app.get("/recommendationsforme/:email", async (req, res) => {
+  const userEmail = req.params.email;
+  const userQueries = await queriesCollection.find({ email: userEmail }).toArray();
+  
+  const queryIds = userQueries.map(query => query._id.toString());
+
+  const recommendations = await recommendationsCollection.find({ queryId: { $in: queryIds } }).toArray();
+
+  res.send(recommendations);
+});
+
+
+
+    // Add recommendation
     app.post("/recommendations", async (req, res) => {
       const recommendation = req.body;
       const result = await recommendationsCollection.insertOne(recommendation);
-
-      // Increment recommendation count in the query document
       const queryId = recommendation.queryId;
       await queriesCollection.updateOne(
         { _id: new ObjectId(queryId) },
