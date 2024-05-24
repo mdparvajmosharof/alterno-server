@@ -97,16 +97,13 @@ async function run() {
 app.delete("/recommendation/:id", async (req, res) => {
   const recommendationId = req.params.id;
 
-  // Find the recommendation to get the queryId
   const recommendation = await recommendationsCollection.findOne({ _id: new ObjectId(recommendationId) });
   if (!recommendation) {
     return res.status(404).send({ message: "Recommendation not found" });
   }
 
-  // Delete the recommendation
   const result = await recommendationsCollection.deleteOne({ _id: new ObjectId(recommendationId) });
 
-  // Decrement the recommendation count in the query document
   const queryId = recommendation.queryId;
   await queriesCollection.updateOne(
     { _id: new ObjectId(queryId) },
