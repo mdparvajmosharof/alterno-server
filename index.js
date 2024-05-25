@@ -8,7 +8,7 @@ const app = express();
 require("dotenv").config();
 app.use(cors({
   origin: [
-    'http://localhost:5173'
+    'http://localhost:5173',"https://alterno-auth.web.app"
   ],
   credentials: true
 }));
